@@ -30,7 +30,7 @@ const App = () => (
         <DestinationProvider>
           <Toaster />
           <Sonner />
-          <BrowserRouter>
+          <BrowserRouter basename={import.meta.env.BASE_URL}>
             <Suspense fallback={<Loading />}>
               <Routes>
                 <Route path="/" element={<Index />} />

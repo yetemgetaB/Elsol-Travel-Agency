@@ -1,6 +1,6 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 
 const Services = () => {
@@ -84,12 +84,12 @@ const Services = () => {
             <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
               Contact us to discuss your specific travel requirements. We're here to help create your perfect travel experience.
             </p>
-            <a
-              href="#contact"
-              className="elsol-button inline-flex items-center hover:scale-110 transition-transform duration-300"
+            <Link
+              to="/contact"
+              className="elsol-button inline-flex items-center hover:scale-105 transition-transform duration-300"
             >
               Contact Us
-            </a>
+            </Link>
           </motion.div>
         </div>
       </div>

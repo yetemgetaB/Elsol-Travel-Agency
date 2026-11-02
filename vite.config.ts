@@ -5,13 +5,19 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  // Load env variables
   const env = loadEnv(mode, process.cwd(), '');
   
-  // Get the base URL from environment variable or use the default
-  const base = env.VITE_APP_BASE_URL 
-    ? new URL(env.VITE_APP_BASE_URL).pathname
-    : "/Elsol-Travel-Agent";
+  // Base path handling for GitHub Pages vs Vercel / custom domain
+  let base = "/";
+  if (env.VITE_APP_BASE_URL) {
+    try {
+      base = new URL(env.VITE_APP_BASE_URL).pathname;
+    } catch {
+      base = env.VITE_APP_BASE_URL;
+    }
+  } else if (process.env.GITHUB_ACTIONS === 'true') {
+    base = "/Elsol-Travel-Agency/";
+  }
     
   return {
     base,

@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Hero = () => {
   const images = [
-    'https://cdn.onemileatatime.com/wp-content/uploads/2024/11/Ethiopian-Airlines-Business-Class-A350-55.jpeg',
-    'https://unitedrepublicoftanzania.com/wp-content/uploads/2023/11/Traveling-between-Ethiopia-and-Tanzania-How-to-Make-the-Most-of-Your-Flight-Time-1068x657.jpg',
-    'https://zambiatransportandlogistics.com/wp-content/uploads/2024/11/465108437_988837626594344_3044770402090897493_n-1536x1152.jpg',
-    'https://airinsight.com/wp-content/uploads/2024/11/ethiopian-airlines-boeing.webp',
-    'https://pbs.twimg.com/media/E147JLsWQAMCwru?format=jpg&name=small',
-    'http://www.dsw-photo.com/Photos/ETH/i-CHKgFSV/0/31f91111/XL/11-XL.jpg',
-    'https://live.staticflickr.com/6196/6084833103_eef643fa22_c.jpg'
+    'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=1600&q=80',
+    'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1600&q=80',
+    'https://images.unsplash.com/photo-1506953823976-52e1fdc0149a?auto=format&fit=crop&w=1600&q=80',
+    'https://images.unsplash.com/photo-1528728329032-2972f65dfb3f?auto=format&fit=crop&w=1600&q=80',
+    'https://images.unsplash.com/photo-1540339832862-474599807836?auto=format&fit=crop&w=1600&q=80'
   ];
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -86,26 +85,26 @@ const Hero = () => {
 
       {/* Edge hover areas */}
       <div 
-        className="absolute left-0 top-0 w-[100px] h-full opacity-0"
+        className="absolute left-0 top-0 w-[100px] h-full opacity-0 z-20"
         onMouseEnter={() => setShowLeftControl(true)}
         onMouseLeave={() => setShowLeftControl(false)}
       />
       <div 
-        className="absolute right-0 top-0 w-[100px] h-full opacity-0"
+        className="absolute right-0 top-0 w-[100px] h-full opacity-0 z-20"
         onMouseEnter={() => setShowRightControl(true)}
         onMouseLeave={() => setShowRightControl(false)}
       />
 
       {/* Navigation Buttons */}
       <motion.div
-        className="absolute left-4 top-1/2 -translate-y-1/2"
+        className="absolute left-4 top-1/2 -translate-y-1/2 z-30"
         animate={{ opacity: showLeftControl ? 1 : 0 }}
         initial={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
       >
         <button
           onClick={prevImage}
-          className="w-12 h-12 rounded-full bg-black/30 text-white backdrop-blur-sm border border-white/10 flex items-center justify-center hover:bg-elsol-sage hover:scale-110 transition-all duration-300 hover:shadow-[0_0_15px_rgba(108,169,59,0.5)]"
+          className="w-12 h-12 rounded-full bg-black/30 text-white backdrop-blur-sm border border-white/10 flex items-center justify-center hover:bg-elsol-sage hover:text-black hover:scale-110 transition-all duration-300 shadow-glow"
           aria-label="Previous image"
         >
           <ChevronLeft className="w-6 h-6" />
@@ -113,14 +112,14 @@ const Hero = () => {
       </motion.div>
 
       <motion.div
-        className="absolute right-4 top-1/2 -translate-y-1/2"
+        className="absolute right-4 top-1/2 -translate-y-1/2 z-30"
         animate={{ opacity: showRightControl ? 1 : 0 }}
         initial={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
       >
         <button
           onClick={nextImage}
-          className="w-12 h-12 rounded-full bg-black/30 text-white backdrop-blur-sm border border-white/10 flex items-center justify-center hover:bg-elsol-sage hover:scale-110 transition-all duration-300 hover:shadow-[0_0_15px_rgba(108,169,59,0.5)]"
+          className="w-12 h-12 rounded-full bg-black/30 text-white backdrop-blur-sm border border-white/10 flex items-center justify-center hover:bg-elsol-sage hover:text-black hover:scale-110 transition-all duration-300 shadow-glow"
           aria-label="Next image"
         >
           <ChevronRight className="w-6 h-6" />
@@ -135,33 +134,33 @@ const Hero = () => {
         animate="visible"
       >
         <motion.span 
-          className="inline-block py-1 px-3 rounded-full bg-elsol-sage/20 text-white text-xs sm:text-sm font-medium mb-4 sm:mb-6 hover:bg-elsol-sage/30 transition-all duration-300 hover:scale-105 text-shadow-md"
+          className="inline-block py-1.5 px-4 rounded-full bg-elsol-sage/20 text-elsol-sage border border-elsol-sage/30 text-xs sm:text-sm font-semibold mb-4 sm:mb-6 backdrop-blur-md"
           variants={itemVariants}
         >
-          IATA Accredited Agency
+          IATA Accredited Travel Agency • Addis Ababa
         </motion.span>
         <motion.h1 
-          className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-4 sm:mb-6 max-w-5xl hover:text-shadow-glow transition-all duration-300 text-shadow-md"
+          className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-4 sm:mb-6 max-w-5xl text-shadow-md"
           variants={itemVariants}
         >
-          Your Gateway to World-Class Travel Experience
+          Your Gateway to World-Class Travel Experiences
         </motion.h1>
         <motion.p 
-          className="text-lg sm:text-xl text-gray-200 mb-8 sm:mb-10 max-w-2xl hover:text-white transition-all duration-300 text-shadow-md"
+          className="text-lg sm:text-xl text-gray-200 mb-8 sm:mb-10 max-w-2xl text-shadow-md"
           variants={itemVariants}
         >
-          IATA Accredited Agent with 5+ Years of Excellence
+          Custom domestic tours, international flight reservations, and 24/7 dedicated support.
         </motion.p>
         <motion.div 
           className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto sm:space-x-4"
           variants={itemVariants}
         >
-          <a href="/blogs" className="elsol-button w-full sm:w-auto hover:shadow-glow transition-all duration-300 hover:scale-105 text-center text-shadow-md">
-            Explore Blogs
-          </a>
-          <a href="#contact" className="elsol-button-outline w-full sm:w-auto border-white text-white hover:bg-white hover:text-elsol-black hover:shadow-glow transition-all duration-300 hover:scale-105 text-center text-shadow-md">
-            Contact Us
-          </a>
+          <Link to="/destinations" className="elsol-button w-full sm:w-auto hover:shadow-glow transition-all duration-300 hover:scale-105 text-center">
+            Discover Destinations
+          </Link>
+          <Link to="/contact" className="elsol-button-outline w-full sm:w-auto border-white text-white hover:bg-white hover:text-black hover:shadow-glow transition-all duration-300 hover:scale-105 text-center">
+            Contact Travel Desk
+          </Link>
         </motion.div>
       </motion.div>
 
@@ -173,18 +172,15 @@ const Hero = () => {
         transition={{ delay: 1.5 }}
       >
         <a href="#services" className="flex flex-col items-center text-white/80 hover:text-white transition-colors group">
-          <span className="text-sm mb-2 group-hover:text-elsol-sage transition-colors duration-300">Scroll Down</span>
+          <span className="text-xs mb-2 group-hover:text-elsol-sage transition-colors duration-300">Scroll to Explore</span>
           <svg 
-            className="w-6 h-8 group-hover:text-elsol-sage transition-colors duration-300" 
+            className="w-5 h-7 group-hover:text-elsol-sage transition-colors duration-300" 
             viewBox="0 0 24 32" 
             fill="none" 
             stroke="currentColor"
           >
-            {/* Mouse body */}
             <rect x="5" y="1" width="14" height="24" rx="7" strokeWidth="2" />
-            {/* Scroll wheel */}
             <line x1="12" y1="6" x2="12" y2="10" strokeWidth="2" />
-            {/* Scroll arrow */}
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 28 L8 32 L12 30 L16 32 L12 28" />
           </svg>
         </a>
