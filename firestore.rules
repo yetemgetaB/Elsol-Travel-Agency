@@ -1,0 +1,339 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: destinations
+    // Document ID: custom string ID (e.g., 'dest-1719827364521' or 'dest-lalibela')
+    // Fields:
+    //   - id: string (optional, 1..100 chars, immutable)
+    //   - name: string (optional, 1..150 chars - name or title required)
+    //   - title: string (optional, 1..150 chars - name or title required)
+    //   - slug: string (required, 1..150 chars)
+    //   - description: string (required, 1..10000 chars)
+    //   - imageUrl: string (optional, 1..1000 chars, valid image URL or path)
+    //   - image: string (optional, 1..1000 chars, valid image URL or path)
+    //   - gallery: list (optional, max 20 image URL strings)
+    //   - price: string or number (required, 1..100 chars or positive number)
+    //   - duration: string (required, 1..100 chars)
+    //   - category: string (required, 1..50 chars)
+    //   - country: string (optional, 1..100 chars)
+    //   - highlights: list (required, 1..30 strings)
+    //   - isFeatured: bool (optional)
+    //   - isActive: bool (optional)
+    //   - createdAt: string or timestamp (optional, immutable)
+    //   - updatedAt: string or timestamp (optional)
+    //
+    // Collection: blog_posts (and blogPosts)
+    // Document ID: custom string ID (e.g., 'post-1719827364521' or '1')
+    // Fields:
+    //   - id: string (optional, 1..100 chars, immutable)
+    //   - title: string (required, 1..200 chars)
+    //   - slug: string (required, 1..200 chars)
+    //   - excerpt: string (required, 1..1000 chars)
+    //   - content: string (required, 1..50000 chars)
+    //   - author: string (required, 1..100 chars)
+    //   - date: string (optional, 1..100 chars)
+    //   - readTime: string (optional, 1..50 chars)
+    //   - imageUrl: string (required, 1..1000 chars)
+    //   - status: string (optional, 'published' or 'draft')
+    //   - travelDetails: map (optional, flight/package details)
+    //   - telegramMessage: string (optional, 0..4000 chars)
+    //   - telegramShared: bool (optional)
+    //   - createdAt: string or timestamp (optional, immutable)
+    //   - publishedAt: string or timestamp (optional)
+    //
+    // Collection: inquiries
+    // Document ID: custom string ID (e.g., 'inq-1719827364521')
+    // Fields:
+    //   - id: string (optional, 1..100 chars, immutable)
+    //   - name: string (required, 1..100 chars, immutable on admin update)
+    //   - email: string (required, valid email pattern, 3..150 chars, immutable on admin update)
+    //   - phone: string (optional, 0..50 chars)
+    //   - subject: string (optional, 0..200 chars)
+    //   - message: string (required, 1..5000 chars, immutable on admin update)
+    //   - serviceType: string (optional, 0..100 chars)
+    //   - destinationId: string (optional, 0..100 chars)
+    //   - destinationName: string (optional, 0..150 chars)
+    //   - status: string (required, 'new' | 'pending' on create; 'new' | 'pending' | 'in_review' | 'contacted' | 'booked' | 'archived' on update)
+    //   - createdAt: string or timestamp (optional, required if timestamp omitted, immutable)
+    //   - timestamp: string or timestamp (optional, required if createdAt omitted, immutable)
+    //   - notes: string (optional, admin-only note, 0..5000 chars, forbidden on create)
+    //   - updatedAt: string or timestamp (optional)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    // Check if the user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Check if caller is an authorized admin
+    function isAdmin() {
+      return isAuthenticated();
+    }
+
+    // Validate required fields exist in data
+    function hasRequiredFields(data, fields) {
+      return data.keys().hasAll(fields);
+    }
+
+    // Validate data contains only allowed keys
+    function hasOnlyAllowedFields(data, fields) {
+      return data.keys().hasOnly(fields);
+    }
+
+    // Validate non-empty string within size bounds
+    function isValidString(val, minLen, maxLen) {
+      return val is string && val.size() >= minLen && val.size() <= maxLen;
+    }
+
+    // Validate optional string (if present, must be string and within length)
+    function isValidOptionalString(data, field, minLen, maxLen) {
+      return !(field in data) || isValidString(data[field], minLen, maxLen);
+    }
+
+    // Validate email format
+    function isValidEmail(email) {
+      return email is string &&
+        email.size() >= 3 &&
+        email.size() <= 150 &&
+        email.matches('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$');
+    }
+
+    // Validate image URL format (http, https, root-relative, or data URI)
+    function isValidImageUrl(url) {
+      return url is string &&
+        url.size() >= 1 &&
+        url.size() <= 1000 &&
+        (url.matches('^https?://.*') || url.matches('^/.*') || url.matches('^data:image/.*'));
+    }
+
+    // Validate date string or Firestore timestamp
+    function isValidDateOrTimestamp(val) {
+      return val is timestamp || (val is string && val.size() >= 1 && val.size() <= 100);
+    }
+
+    // Validate field remains unchanged if it was present in existing document
+    function isFieldUnchanged(field) {
+      return !(field in resource.data) ||
+        (field in request.resource.data && request.resource.data[field] == resource.data[field]);
+    }
+
+    // ===============================================================
+    // Domain Validators: Destinations
+    // ===============================================================
+
+    function destinationAllowedKeys() {
+      return [
+        'id', 'name', 'title', 'slug', 'description',
+        'imageUrl', 'image', 'gallery', 'price',
+        'duration', 'category', 'country', 'highlights',
+        'isFeatured', 'isActive', 'createdAt', 'updatedAt'
+      ];
+    }
+
+    function isValidDestination(data) {
+      return hasOnlyAllowedFields(data, destinationAllowedKeys()) &&
+        // Either name or title must be provided and valid
+        (('name' in data && isValidString(data.name, 1, 150)) ||
+         ('title' in data && isValidString(data.title, 1, 150))) &&
+        (!('name' in data) || isValidString(data.name, 1, 150)) &&
+        (!('title' in data) || isValidString(data.title, 1, 150)) &&
+        // Required fields
+        ('slug' in data && isValidString(data.slug, 1, 150)) &&
+        ('description' in data && isValidString(data.description, 1, 10000)) &&
+        ('price' in data && ((data.price is string && data.price.size() >= 1 && data.price.size() <= 100) ||
+                             (data.price is number && data.price >= 0 && data.price <= 1000000000))) &&
+        ('duration' in data && isValidString(data.duration, 1, 100)) &&
+        ('category' in data && isValidString(data.category, 1, 50)) &&
+        // Image requirement (either imageUrl or image must be provided)
+        (('imageUrl' in data && isValidImageUrl(data.imageUrl)) ||
+         ('image' in data && isValidImageUrl(data.image))) &&
+        (!('imageUrl' in data) || isValidImageUrl(data.imageUrl)) &&
+        (!('image' in data) || isValidImageUrl(data.image)) &&
+        // Highlights array
+        ('highlights' in data && data.highlights is list && data.highlights.size() >= 1 && data.highlights.size() <= 30) &&
+        // Optional fields
+        isValidOptionalString(data, 'country', 1, 100) &&
+        isValidOptionalString(data, 'id', 1, 100) &&
+        (!('gallery' in data) || (data.gallery is list && data.gallery.size() <= 20)) &&
+        (!('isFeatured' in data) || data.isFeatured is bool) &&
+        (!('isActive' in data) || data.isActive is bool) &&
+        (!('createdAt' in data) || isValidDateOrTimestamp(data.createdAt)) &&
+        (!('updatedAt' in data) || isValidDateOrTimestamp(data.updatedAt));
+    }
+
+    function areImmutableDestinationFieldsUnchanged() {
+      return isFieldUnchanged('id') && isFieldUnchanged('createdAt');
+    }
+
+    // ===============================================================
+    // Domain Validators: Blog Posts
+    // ===============================================================
+
+    function blogPostAllowedKeys() {
+      return [
+        'id', 'title', 'slug', 'excerpt', 'content',
+        'author', 'date', 'readTime', 'imageUrl',
+        'status', 'travelDetails', 'telegramMessage',
+        'telegramShared', 'createdAt', 'publishedAt'
+      ];
+    }
+
+    function isValidTravelDetails(td) {
+      return td is map &&
+        td.keys().hasOnly([
+          'title', 'airline', 'departureDate', 'returnDate',
+          'departureTime', 'returnTime', 'baggage', 'price',
+          'phones', 'emails', 'additionalInfo'
+        ]) &&
+        (!('title' in td) || isValidString(td.title, 1, 200)) &&
+        (!('airline' in td) || isValidString(td.airline, 1, 100)) &&
+        (!('departureDate' in td) || isValidString(td.departureDate, 1, 50)) &&
+        (!('returnDate' in td) || isValidString(td.returnDate, 1, 50)) &&
+        (!('departureTime' in td) || isValidString(td.departureTime, 1, 50)) &&
+        (!('returnTime' in td) || isValidString(td.returnTime, 1, 50)) &&
+        (!('baggage' in td) || isValidString(td.baggage, 1, 100)) &&
+        (!('price' in td) || isValidString(td.price, 1, 100)) &&
+        (!('additionalInfo' in td) || isValidString(td.additionalInfo, 0, 2000)) &&
+        (!('phones' in td) || (td.phones is list && td.phones.size() <= 10)) &&
+        (!('emails' in td) || (td.emails is list && td.emails.size() <= 10));
+    }
+
+    function isValidBlogPost(data) {
+      return hasOnlyAllowedFields(data, blogPostAllowedKeys()) &&
+        hasRequiredFields(data, ['title', 'slug', 'excerpt', 'content', 'author', 'imageUrl']) &&
+        isValidString(data.title, 1, 200) &&
+        isValidString(data.slug, 1, 200) &&
+        isValidString(data.excerpt, 1, 1000) &&
+        isValidString(data.content, 1, 50000) &&
+        isValidString(data.author, 1, 100) &&
+        isValidImageUrl(data.imageUrl) &&
+        isValidOptionalString(data, 'id', 1, 100) &&
+        isValidOptionalString(data, 'date', 1, 100) &&
+        isValidOptionalString(data, 'readTime', 1, 50) &&
+        (!('status' in data) || (data.status is string && data.status in ['published', 'draft'])) &&
+        (!('travelDetails' in data) || isValidTravelDetails(data.travelDetails)) &&
+        (!('telegramMessage' in data) || isValidString(data.telegramMessage, 0, 4000)) &&
+        (!('telegramShared' in data) || data.telegramShared is bool) &&
+        (!('createdAt' in data) || isValidDateOrTimestamp(data.createdAt)) &&
+        (!('publishedAt' in data) || isValidDateOrTimestamp(data.publishedAt));
+    }
+
+    function areImmutableBlogFieldsUnchanged() {
+      return isFieldUnchanged('id') && isFieldUnchanged('createdAt');
+    }
+
+    // ===============================================================
+    // Domain Validators: Inquiries
+    // ===============================================================
+
+    function inquiryAllowedKeys() {
+      return [
+        'id', 'name', 'email', 'phone', 'subject',
+        'message', 'serviceType', 'destinationId',
+        'destinationName', 'status', 'createdAt',
+        'timestamp', 'notes', 'updatedAt'
+      ];
+    }
+
+    function isValidInquiryBase(data) {
+      return hasOnlyAllowedFields(data, inquiryAllowedKeys()) &&
+        hasRequiredFields(data, ['name', 'email', 'message']) &&
+        isValidString(data.name, 1, 100) &&
+        isValidEmail(data.email) &&
+        isValidString(data.message, 1, 5000) &&
+        // Timestamp validation: at least one of createdAt or timestamp must be present
+        (('createdAt' in data && isValidDateOrTimestamp(data.createdAt)) ||
+         ('timestamp' in data && isValidDateOrTimestamp(data.timestamp))) &&
+        (!('createdAt' in data) || isValidDateOrTimestamp(data.createdAt)) &&
+        (!('timestamp' in data) || isValidDateOrTimestamp(data.timestamp)) &&
+        isValidOptionalString(data, 'id', 1, 100) &&
+        isValidOptionalString(data, 'phone', 0, 50) &&
+        isValidOptionalString(data, 'subject', 0, 200) &&
+        isValidOptionalString(data, 'serviceType', 0, 100) &&
+        isValidOptionalString(data, 'destinationId', 0, 100) &&
+        isValidOptionalString(data, 'destinationName', 0, 150) &&
+        (!('updatedAt' in data) || isValidDateOrTimestamp(data.updatedAt));
+    }
+
+    // Visitor creation validation
+    function isValidInquiryCreate(data) {
+      return isValidInquiryBase(data) &&
+        // Status must be either 'pending' or 'new' on submission
+        (!('status' in data) || (data.status is string && data.status in ['pending', 'new'])) &&
+        // Internal admin notes cannot be forged by external visitors
+        !('notes' in data);
+    }
+
+    // Admin update validation
+    function isValidInquiryUpdate(data) {
+      return isValidInquiryBase(data) &&
+        // Valid status values for staff workflow
+        (!('status' in data) || (data.status is string && data.status in ['new', 'pending', 'in_review', 'contacted', 'booked', 'archived'])) &&
+        // Staff notes field validation
+        (!('notes' in data) || isValidString(data.notes, 0, 5000)) &&
+        // Visitor contact data and original timestamps cannot be tampered with
+        isFieldUnchanged('name') &&
+        isFieldUnchanged('email') &&
+        isFieldUnchanged('message') &&
+        isFieldUnchanged('id') &&
+        isFieldUnchanged('createdAt') &&
+        isFieldUnchanged('timestamp');
+    }
+
+    // ===============================================================
+    // Rules Definition
+    // ===============================================================
+
+    // Destinations collection: Public read for travel visitors, authenticated admin writes
+    match /destinations/{destId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidDestination(request.resource.data);
+      allow update: if isAdmin() && isValidDestination(request.resource.data) && areImmutableDestinationFieldsUnchanged();
+      allow delete: if isAdmin();
+    }
+
+    // Blog posts collection (snake_case convention): Public read, authenticated admin writes
+    match /blog_posts/{postId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidBlogPost(request.resource.data);
+      allow update: if isAdmin() && isValidBlogPost(request.resource.data) && areImmutableBlogFieldsUnchanged();
+      allow delete: if isAdmin();
+    }
+
+    // Blog posts collection (camelCase convention used in frontend code): Public read, authenticated admin writes
+    match /blogPosts/{postId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidBlogPost(request.resource.data);
+      allow update: if isAdmin() && isValidBlogPost(request.resource.data) && areImmutableBlogFieldsUnchanged();
+      allow delete: if isAdmin();
+    }
+
+    // Inquiries collection: Public visitor form submission, authenticated admin management
+    match /inquiries/{inquiryId} {
+      // Inquiries contain visitor PII: STRICTLY authenticated admin read only
+      allow read: if isAdmin();
+      // Visitors can create inquiries via contact form or booking request
+      allow create: if isValidInquiryCreate(request.resource.data);
+      // Only authenticated admin can update inquiry status and internal notes
+      allow update: if isAdmin() && isValidInquiryUpdate(request.resource.data);
+      // Only authenticated admin can delete inquiry records
+      allow delete: if isAdmin();
+    }
+
+    // Default deny for all other documents/collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
