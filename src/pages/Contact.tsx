@@ -1,19 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Phone, Mail, MapPin, Clock, Send } from 'lucide-react';
+import { Phone, Mail, MapPin, Clock, Send, CheckCircle2 } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { EmailService } from '@/services/EmailService';
+import { inquiryService } from '@/services/inquiryService';
 import { toast } from '@/components/ui/use-toast';
 
 const Contact = () => {
+  const [searchParams] = useSearchParams();
+  const destinationParam = searchParams.get('destination');
+
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
-    subject: '',
-    message: '',
+    subject: destinationParam ? `Booking Inquiry: ${destinationParam}` : '',
+    message: destinationParam ? `Hello ELSOL Travel, I am interested in booking a trip to ${destinationParam}. Please share itinerary details and rates.` : '',
   });
+
+  useEffect(() => {
+    if (destinationParam) {
+      setFormData(prev => ({
+        ...prev,
+        subject: `Booking Inquiry: ${destinationParam}`,
+        message: `Hello ELSOL Travel, I am interested in booking a trip to ${destinationParam}. Please share itinerary details and rates.`
+      }));
+    }
+  }, [destinationParam]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -30,25 +46,39 @@ const Contact = () => {
     setIsSubmitting(true);
 
     try {
-      // Validate form data before submission
       if (!formData.name || !formData.email || !formData.subject || !formData.message) {
         throw new Error('Please fill in all required fields');
       }
       
-      // Basic email validation
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(formData.email)) {
         throw new Error('Please enter a valid email address');
       }
       
-      await EmailService.sendEmail(formData);
+      // 1. Save lead into Firestore inquiries collection
+      await inquiryService.submit({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone || '',
+        subject: formData.subject,
+        message: formData.message,
+        serviceType: destinationParam ? 'Tour Booking' : 'General Inquiry',
+        destinationName: destinationParam || undefined
+      });
+
+      // 2. Dispatch EmailJS notification
+      try {
+        await EmailService.sendEmail(formData);
+      } catch (emailErr) {
+        console.warn('EmailJS delivery notice:', emailErr);
+      }
       
       toast({
         title: "Message Sent Successfully",
-        description: "Thank you for contacting us. We'll get back to you soon!",
+        description: "Thank you for contacting ELSOL Travel. We'll get back to you soon!",
       });
 
-      // Reset form
+      setSubmitted(true);
       setFormData({
         name: '',
         email: '',
@@ -57,13 +87,9 @@ const Contact = () => {
         message: '',
       });
       
-      // Scroll to top to show the success message
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      
     } catch (error) {
-      console.error('Error sending email:', error);
-      
-      // Provide a user-friendly error message
+      console.error('Error sending message:', error);
       const errorMessage = error instanceof Error 
         ? error.message 
         : "Failed to send message. Please try again later or contact us directly.";
@@ -111,7 +137,7 @@ const Contact = () => {
                     <div>
                       <h3 className="font-medium text-gray-100">Address</h3>
                       <p className="text-gray-400">
-                        Bole Medhanialem, Milkomi city complex 1st floor, office #119<br />
+                        Bole Medhanialem, Milkomi City Complex, 1st Floor, Office #119<br />
                         Addis Ababa, Ethiopia
                       </p>
                     </div>
@@ -130,7 +156,8 @@ const Contact = () => {
                     <Mail className="w-6 h-6 text-elsol-sage mt-1 mr-3 group-hover:scale-110 transition-transform duration-300" />
                     <div>
                       <h3 className="font-medium text-gray-100">Email</h3>
-                      <p className="text-gray-400">yetemgetabekele@gmail.com</p>
+                      <p className="text-gray-400">info@elsol.travel</p>
+                      <p className="text-gray-400">bookings@elsol.travel</p>
                     </div>
                   </div>
 
@@ -138,8 +165,8 @@ const Contact = () => {
                     <Clock className="w-6 h-6 text-elsol-sage mt-1 mr-3 group-hover:scale-110 transition-transform duration-300" />
                     <div>
                       <h3 className="font-medium text-gray-100">Business Hours</h3>
-                      <p className="text-gray-400">Monday - Friday: 9:00 AM - 6:00 PM</p>
-                      <p className="text-gray-400">Saturday: 9:00 AM - 3:00 PM</p>
+                      <p className="text-gray-400">Monday - Friday: 8:30 AM - 6:00 PM</p>
+                      <p className="text-gray-400">Saturday: 9:00 AM - 1:00 PM</p>
                       <p className="text-gray-400">Sunday: Closed</p>
                     </div>
                   </div>
@@ -149,7 +176,7 @@ const Contact = () => {
               {/* Map */}
               <div className="hover-glow rounded-xl overflow-hidden backdrop-blur-sm bg-black/30 border border-elsol-sage/10">
                 <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3940.5511363451947!2d38.7929873!3d9.0204463!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x164b85f0f9a06d85%3A0x4331551f2e0d81!2sBole%20Medhanealem!5e0!3m2!1sen!2set!4v1647870000000!5m2!1sen!2set"
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d4325.58014961361!2d38.7871945!3d8.995866099999999!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x164b85c436b9f6c9%3A0x848a3cd3d1d0cd95!2sELSOL%20Travel%20Agent!5e1!3m2!1sen!2set!4v1741520410707!5m2!1sen!2set"
                   width="100%"
                   height="300"
                   style={{ border: 0 }}
@@ -170,6 +197,13 @@ const Contact = () => {
               <form onSubmit={handleSubmit} className="hover-glow p-6 rounded-xl backdrop-blur-sm bg-black/30 border border-elsol-sage/10">
                 <h2 className="text-2xl font-semibold mb-6 text-elsol-sage">Send Us a Message</h2>
                 
+                {submitted && (
+                  <div className="mb-6 p-4 rounded-lg bg-elsol-sage/20 border border-elsol-sage/40 flex items-center text-elsol-sage">
+                    <CheckCircle2 className="w-5 h-5 mr-2 flex-shrink-0" />
+                    <span className="text-sm">Inquiry received! Our travel desk will contact you shortly.</span>
+                  </div>
+                )}
+
                 <div className="space-y-4">
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">
@@ -214,7 +248,7 @@ const Contact = () => {
                       value={formData.phone}
                       onChange={handleChange}
                       className="w-full px-4 py-2 rounded-lg bg-black/50 border border-elsol-sage/20 text-white placeholder-gray-500 focus:outline-none focus:border-elsol-sage transition-colors"
-                      placeholder="Your phone number"
+                      placeholder="+251 9..."
                     />
                   </div>
 
@@ -246,7 +280,7 @@ const Contact = () => {
                       rows={4}
                       required
                       className="w-full px-4 py-2 rounded-lg bg-black/50 border border-elsol-sage/20 text-white placeholder-gray-500 focus:outline-none focus:border-elsol-sage transition-colors resize-none"
-                      placeholder="Your message..."
+                      placeholder="Tell us about your travel dates, flight destinations, or group size..."
                     />
                   </div>
 
@@ -260,7 +294,7 @@ const Contact = () => {
                     {isSubmitting ? (
                       <>
                         <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin mr-2"></div>
-                        Sending...
+                        Sending Inquiry...
                       </>
                     ) : (
                       <>
