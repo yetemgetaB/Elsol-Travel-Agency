@@ -4,7 +4,7 @@ export class EmailService {
   private static readonly SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
   private static readonly TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
   private static readonly PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
-  private static readonly RECIPIENT_EMAIL = 'yetemgetabekele@gmail.com'; // Consider moving this to env var
+  private static readonly RECIPIENT_EMAIL = import.meta.env.VITE_RECIPIENT_EMAIL || 'info@elsol.travel';
   private static readonly IS_DEVELOPMENT = import.meta.env.MODE === 'development' || 
                                           import.meta.env.VITE_EMAILJS_SERVICE_ID === 'development';
 

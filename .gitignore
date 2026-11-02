@@ -36,11 +36,6 @@ yarn-error.log*
 node_modules/
 *.local
 
-# Specific files containing sensitive info
-src/pages/admin/Login.tsx
-src/services/TelegramBot.ts
-
 # Local development files
 .vercel
 .netlify
-.vercel
