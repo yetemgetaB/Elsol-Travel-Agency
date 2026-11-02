@@ -1,25 +1,22 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
+import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import { getAuth } from "firebase/auth";
+import { getStorage } from "firebase/storage";
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyCWgHZjvYemAxtrXLWdnp1ABtxzR0_rzR0",
-  authDomain: "travel-agency-c27e0.firebaseapp.com",
-  projectId: "travel-agency-c27e0",
-  storageBucket: "travel-agency-c27e0.firebasestorage.app",
-  messagingSenderId: "1022693047162",
-  appId: "1:1022693047162:web:3c01f128b134b3c1eff4c3",
-  measurementId: "G-NLPJHCY0W9"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyCWgHZjvYemAxtrXLWdnp1ABtxzR0_rzR0",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "travel-agency-c27e0.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "travel-agency-c27e0",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "travel-agency-c27e0.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "1022693047162",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:1022693047162:web:3c01f128b134b3c1eff4c3",
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-NLPJHCY0W9"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-const db = getFirestore(app);
+// Initialize Firebase (singleton)
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-export { db };
+export const db = getFirestore(app);
+export const auth = getAuth(app);
+export const storage = getStorage(app);
+export default app;
