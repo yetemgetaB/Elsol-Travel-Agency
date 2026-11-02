@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from '../hooks/use-toast';
 import { X, Plus, Minus } from 'lucide-react';
 import { TelegramBot } from '../services/TelegramBot';
+import { storageService } from '../services/storageService';
 import { Image as ImageIcon, Link, Upload } from 'lucide-react';
 import { BlogPost, TravelDetails } from '../types/blog';
 
@@ -69,7 +70,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({ post, isEditing = false, onCanc
     }
   }, [isEditing, post]);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) { 
@@ -82,13 +83,17 @@ const BlogEditor: React.FC<BlogEditorProps> = ({ post, isEditing = false, onCanc
       }
 
       setSelectedImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result as string;
-        setImagePreview(base64String);
-        setFormData(prev => ({ ...prev, imageUrl: base64String }));
-      };
-      reader.readAsDataURL(file);
+      try {
+        const url = await storageService.uploadImage(file, 'blogs');
+        setImagePreview(url);
+        setFormData(prev => ({ ...prev, imageUrl: url }));
+      } catch (err: any) {
+        toast({
+          title: "Image Upload Error",
+          description: err.message || "Failed to upload image",
+          variant: "destructive"
+        });
+      }
     }
   };
 

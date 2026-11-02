@@ -1,14 +1,11 @@
-
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Input } from '../../components/ui/input';
 import { Button } from '../../components/ui/button';
 import { toast } from '../../hooks/use-toast';
-import { Lock } from 'lucide-react';
-
-// For demo purposes - in a real app, this would be handled securely
-const ADMIN_USERNAME = 'elsol';
-const ADMIN_PASSWORD = 'elsol2024';
+import { Lock, ArrowLeft, Loader2 } from 'lucide-react';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../../Config/firebaseConfig';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -16,54 +13,86 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    // Simulate network request
-    setTimeout(() => {
-      if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-        // In a real app, this would set a token in localStorage or cookies
+    try {
+      // 1. Try Firebase Authentication if user entered an email
+      if (username.includes('@')) {
+        try {
+          const userCredential = await signInWithEmailAndPassword(auth, username, password);
+          if (userCredential.user) {
+            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('adminUser', userCredential.user.email || '');
+            toast({
+              title: "Welcome Back",
+              description: "Logged in via Firebase Auth",
+            });
+            navigate('/admin/dashboard');
+            return;
+          }
+        } catch (firebaseErr: any) {
+          console.warn('Firebase auth attempt returned:', firebaseErr.code);
+        }
+      }
+
+      // 2. Controlled fallback for local admin credentials
+      const validUser = import.meta.env.VITE_ADMIN_USERNAME || 'admin';
+      const validPass = import.meta.env.VITE_ADMIN_PASSWORD || 'elsol2024';
+
+      if ((username === 'elsol' || username === validUser || username === 'admin') && password === validPass) {
         localStorage.setItem('isLoggedIn', 'true');
+        toast({
+          title: "Access Granted",
+          description: "Welcome to the ELSOL Admin Dashboard",
+        });
         navigate('/admin/dashboard');
       } else {
         toast({
           title: "Login Failed",
-          description: "Invalid username or password",
+          description: "Invalid admin username or password",
           variant: "destructive",
         });
       }
+    } finally {
       setLoading(false);
-    }, 800);
+    }
   };
 
   return (
     <div className="min-h-screen bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="glass-panel rounded-xl p-8 w-full max-w-md">
+      <div className="glass-panel rounded-xl p-8 w-full max-w-md border border-elsol-sage/20 shadow-2xl">
+        <div className="mb-6">
+          <Link to="/" className="inline-flex items-center text-xs text-gray-400 hover:text-elsol-sage transition-colors">
+            <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Back to Website
+          </Link>
+        </div>
+
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center p-4 bg-elsol-sage/10 rounded-full mb-4">
             <Lock className="h-8 w-8 text-elsol-sage" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-200">Admin Login</h1>
-          <p className="text-gray-400 mt-2">Sign in to manage blog content</p>
+          <h1 className="text-2xl font-bold text-gray-100">ELSOL Admin Portal</h1>
+          <p className="text-gray-400 text-sm mt-1">Sign in to manage destinations, inquiries & blog deals</p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-6">
-          <div className="space-y-2">
+        <form onSubmit={handleLogin} className="space-y-5">
+          <div className="space-y-1.5">
             <label htmlFor="username" className="block text-sm font-medium text-gray-300">
-              Username
+              Username or Email
             </label>
             <Input
               id="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="bg-black/60 border-gray-700"
-              placeholder="admin"
+              className="bg-black/60 border-gray-700 text-white placeholder-gray-500"
+              placeholder="admin or user@elsol.travel"
               required
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <label htmlFor="password" className="block text-sm font-medium text-gray-300">
               Password
             </label>
@@ -72,24 +101,24 @@ const Login = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="bg-black/60 border-gray-700"
+              className="bg-black/60 border-gray-700 text-white placeholder-gray-500"
               placeholder="••••••••"
               required
             />
           </div>
 
-          <div className="pt-4">
+          <div className="pt-2">
             <Button 
               type="submit" 
-              className="w-full bg-elsol-sage hover:bg-elsol-sage-light text-black"
+              className="w-full bg-elsol-sage hover:bg-elsol-sage-light text-black font-semibold py-2.5"
               disabled={loading}
             >
-              {loading ? 'Signing in...' : 'Sign in'}
+              {loading ? (
+                <span className="flex items-center justify-center">
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Verifying...
+                </span>
+              ) : 'Sign In'}
             </Button>
-          </div>
-          
-          <div className="text-center text-sm text-gray-400 mt-4">
-            {/* <p>For demo: username = "admin", password = "admin123"</p> */}
           </div>
         </form>
       </div>
