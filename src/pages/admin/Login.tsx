@@ -18,10 +18,10 @@ const Login = () => {
     setLoading(true);
 
     try {
-      // 1. Try Firebase Authentication if user entered an email
+      // 1. Primary: Firebase Authentication (supports any admin registered in Firebase Auth)
       if (username.includes('@')) {
         try {
-          const userCredential = await signInWithEmailAndPassword(auth, username, password);
+          const userCredential = await signInWithEmailAndPassword(auth, username.trim(), password);
           if (userCredential.user) {
             localStorage.setItem('isLoggedIn', 'true');
             localStorage.setItem('adminUser', userCredential.user.email || '');
@@ -33,28 +33,52 @@ const Login = () => {
             return;
           }
         } catch (firebaseErr: any) {
-          console.warn('Firebase auth attempt returned:', firebaseErr.code);
+          const msg = firebaseErr.code === 'auth/invalid-credential' 
+            ? 'Invalid email or password' 
+            : firebaseErr.message;
+          toast({
+            title: "Authentication Failed",
+            description: msg,
+            variant: "destructive"
+          });
+          return;
         }
       }
 
-      // 2. Controlled fallback for local admin credentials
-      const validUser = import.meta.env.VITE_ADMIN_USERNAME || 'admin';
-      const validPass = import.meta.env.VITE_ADMIN_PASSWORD || 'elsol2024';
+      // 2. Secondary: Secure environment-configured credentials (without hardcoded values in bundle)
+      const configuredAdminUser = import.meta.env.VITE_ADMIN_USERNAME;
+      const configuredAdminPass = import.meta.env.VITE_ADMIN_PASSWORD;
 
-      if ((username === 'elsol' || username === validUser || username === 'admin') && password === validPass) {
-        localStorage.setItem('isLoggedIn', 'true');
-        toast({
-          title: "Access Granted",
-          description: "Welcome to the ELSOL Admin Dashboard",
-        });
-        navigate('/admin/dashboard');
-      } else {
-        toast({
-          title: "Login Failed",
-          description: "Invalid admin username or password",
-          variant: "destructive",
-        });
+      if (configuredAdminUser && configuredAdminPass) {
+        if (username.trim() === configuredAdminUser && password === configuredAdminPass) {
+          localStorage.setItem('isLoggedIn', 'true');
+          toast({
+            title: "Access Granted",
+            description: "Welcome to the ELSOL Admin Dashboard",
+          });
+          navigate('/admin/dashboard');
+          return;
+        }
       }
+
+      // 3. Development helper (only available during local `npm run dev`)
+      if (import.meta.env.DEV) {
+        if (username === 'admin' && password === 'admin123') {
+          localStorage.setItem('isLoggedIn', 'true');
+          toast({
+            title: "Dev Mode Access",
+            description: "Logged in with local dev credentials.",
+          });
+          navigate('/admin/dashboard');
+          return;
+        }
+      }
+
+      toast({
+        title: "Login Failed",
+        description: "Invalid admin credentials. Please use your registered admin email.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -74,20 +98,20 @@ const Login = () => {
             <Lock className="h-8 w-8 text-elsol-sage" />
           </div>
           <h1 className="text-2xl font-bold text-gray-100">ELSOL Admin Portal</h1>
-          <p className="text-gray-400 text-sm mt-1">Sign in to manage destinations, inquiries & blog deals</p>
+          <p className="text-gray-400 text-sm mt-1">Sign in with your admin credentials</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-5">
           <div className="space-y-1.5">
             <label htmlFor="username" className="block text-sm font-medium text-gray-300">
-              Username or Email
+              Admin Email / Username
             </label>
             <Input
               id="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="bg-black/60 border-gray-700 text-white placeholder-gray-500"
-              placeholder="admin or user@elsol.travel"
+              placeholder="admin@elsol.travel"
               required
             />
           </div>
