@@ -1,3 +1,4 @@
+import DOMPurify from 'dompurify';
 import React, { useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, Clock, User, Facebook, Twitter, Linkedin, Send, Plane, CheckCircle, ArrowRight } from 'lucide-react';
@@ -171,7 +172,7 @@ const BlogPost = () => {
               {/* Article Content */}
               <div 
                 className="prose prose-lg max-w-none prose-headings:text-gray-100 prose-p:text-gray-300 prose-strong:text-gray-200 prose-a:text-elsol-sage mb-12 leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: post.content }} 
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }} 
               />
               
               {/* Functional Share buttons */}
