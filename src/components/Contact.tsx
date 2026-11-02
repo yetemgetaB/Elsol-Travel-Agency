@@ -125,8 +125,12 @@ const Contact = () => {
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold mb-1 text-gray-100">Call Us</h3>
-                    <p className="text-gray-300 text-sm">+251 911 234 567</p>
-                    <p className="text-gray-300 text-sm">+251 911 234 568</p>
+                    <p className="text-gray-300 text-sm">
+                      <a href="tel:+251116673456" className="hover:text-elsol-sage transition-colors">+251 11 667 3456</a>
+                    </p>
+                    <p className="text-gray-300 text-sm">
+                      <a href="tel:+251911234567" className="hover:text-elsol-sage transition-colors">+251 91 123 4567</a>
+                    </p>
                   </div>
                 </div>
               </div>
@@ -138,8 +142,12 @@ const Contact = () => {
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold mb-1 text-gray-100">Email Us</h3>
-                    <p className="text-gray-300 text-sm">info@elsol.travel</p>
-                    <p className="text-gray-300 text-sm">bookings@elsol.travel</p>
+                    <p className="text-gray-300 text-sm">
+                      <a href="mailto:info@elsoltravel.com" className="hover:text-elsol-sage transition-colors">info@elsoltravel.com</a>
+                    </p>
+                    <p className="text-gray-300 text-sm">
+                      <a href="mailto:bookings@elsoltravel.com" className="hover:text-elsol-sage transition-colors">bookings@elsoltravel.com</a>
+                    </p>
                   </div>
                 </div>
               </div>

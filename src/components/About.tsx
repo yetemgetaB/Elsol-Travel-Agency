@@ -46,7 +46,7 @@ const About = () => {
             </h2>
             <div className="space-y-4 text-gray-300">
               <p>
-                Welcome to ElSol Experience, your premier destination for authentic Ethiopian travel experiences. 
+                Welcome to ELSOL Travel Agency, your premier partner for seamless international travel and authentic Ethiopian journeys. 
                 Since our establishment, we've been dedicated to showcasing the rich cultural heritage, 
                 breathtaking landscapes, and warm hospitality of Ethiopia to travelers from around the world.
               </p>

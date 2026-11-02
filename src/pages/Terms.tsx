@@ -120,7 +120,7 @@ const Terms = () => {
                 <ul className="list-disc pl-6 mt-2 space-y-1">
                   <li>By email: info@elsoltravel.com</li>
                   <li>By visiting our office: Bole Medhanialem, Addis Ababa, Ethiopia</li>
-                  <li>By phone: +251 911 234 567</li>
+                  <li>By phone: +251 11 667 3456 / +251 91 123 4567</li>
                 </ul>
               </section>
             </div>

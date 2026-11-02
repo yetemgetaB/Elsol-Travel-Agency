@@ -237,8 +237,8 @@ export const seedBlogPosts: BlogPost[] = [
       returnTime: '06:45 PM',
       baggage: '2 x 23kg',
       price: '54,500 ETB',
-      phones: ['+251 911 234 567', '+251 911 234 568'],
-      emails: ['info@elsol.travel'],
+      phones: ['+251 11 667 3456', '+251 91 123 4567'],
+      emails: ['info@elsoltravel.com'],
       additionalInfo: 'Complimentary visa guidance and airport transfer assistance included.'
     }
   }
@@ -250,12 +250,12 @@ export const seedAgencySettings: AgencySettings = {
   accreditation: 'IATA Accredited Travel Partner',
   establishedYear: 2017,
   emails: {
-    primary: 'info@elsol.travel',
-    bookings: 'bookings@elsol.travel'
+    primary: 'info@elsoltravel.com',
+    bookings: 'bookings@elsoltravel.com'
   },
   phones: [
-    '+251 911 234 567',
-    '+251 911 234 568'
+    '+251 11 667 3456',
+    '+251 91 123 4567'
   ],
   address: {
     street: 'Bole Medhanialem, Milkomi City Complex, 1st Floor, Office #119',
@@ -263,8 +263,8 @@ export const seedAgencySettings: AgencySettings = {
     country: 'Ethiopia'
   },
   businessHours: {
-    monFri: '9:00 AM - 6:00 PM',
-    saturday: '9:00 AM - 3:00 PM',
+    monFri: '8:30 AM - 6:00 PM',
+    saturday: '9:00 AM - 1:00 PM',
     sunday: 'Closed'
   },
   socials: {

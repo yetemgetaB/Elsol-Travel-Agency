@@ -111,7 +111,7 @@ const Login = () => {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="bg-black/60 border-gray-700 text-white placeholder-gray-500"
-              placeholder="admin@elsol.travel"
+              placeholder="admin@elsoltravel.com"
               required
             />
           </div>

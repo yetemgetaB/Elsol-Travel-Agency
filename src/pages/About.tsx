@@ -223,8 +223,12 @@ const About = () => {
                   <Phone className="w-8 h-8 text-elsol-sage mx-auto" />
                 </div>
                 <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">Call Us</h3>
-                <p className="text-gray-300 text-sm mb-1">+251 911 234 567</p>
-                <p className="text-gray-300 text-sm">+251 911 234 568</p>
+                <p className="text-gray-300 text-sm mb-1">
+                  <a href="tel:+251116673456" className="hover:text-elsol-sage transition-colors">+251 11 667 3456</a>
+                </p>
+                <p className="text-gray-300 text-sm">
+                  <a href="tel:+251911234567" className="hover:text-elsol-sage transition-colors">+251 91 123 4567</a>
+                </p>
               </div>
 
               <div className="glass-panel p-6 rounded-xl hover-glow">
@@ -232,8 +236,12 @@ const About = () => {
                   <Mail className="w-8 h-8 text-elsol-sage mx-auto" />
                 </div>
                 <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">Email Us</h3>
-                <p className="text-gray-300 text-sm mb-1">info@elsol.travel</p>
-                <p className="text-gray-300 text-sm">bookings@elsol.travel</p>
+                <p className="text-gray-300 text-sm mb-1">
+                  <a href="mailto:info@elsoltravel.com" className="hover:text-elsol-sage transition-colors">info@elsoltravel.com</a>
+                </p>
+                <p className="text-gray-300 text-sm">
+                  <a href="mailto:bookings@elsoltravel.com" className="hover:text-elsol-sage transition-colors">bookings@elsoltravel.com</a>
+                </p>
               </div>
 
               <div className="glass-panel p-6 rounded-xl sm:col-span-2 lg:col-span-1 hover-glow">
