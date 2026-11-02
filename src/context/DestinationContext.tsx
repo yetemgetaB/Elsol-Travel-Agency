@@ -1,21 +1,20 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from '@/hooks/use-toast';
+import { Destination } from '../types/database';
+import { destinationService } from '../services/destinationService';
+import { seedDestinations } from '../data/seedData';
 
-interface Destination {
-  id: string;
-  name: string;
-  image: string;
-  description: string;
-  highlights: string[];
-  slug: string;
-}
+// Extended type to keep backward compatibility with components using .image instead of .imageUrl
+export type DestinationItem = Destination & {
+  image?: string;
+};
 
 interface DestinationContextType {
-  destinations: Destination[];
-  addDestination: (destination: Destination) => void;
-  updateDestination: (destination: Destination) => void;
-  deleteDestination: (id: string) => void;
+  destinations: DestinationItem[];
+  addDestination: (destination: Omit<Destination, 'id'> | Destination) => Promise<void>;
+  updateDestination: (destination: Destination) => Promise<void>;
+  deleteDestination: (id: string) => Promise<void>;
+  refreshDestinations?: () => Promise<void>;
 }
 
 const DestinationContext = createContext<DestinationContextType | undefined>(undefined);
@@ -29,154 +28,84 @@ export const useDestinationContext = () => {
 };
 
 export const DestinationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [destinations, setDestinations] = useState<Destination[]>(() => {
-    const savedDestinations = localStorage.getItem('destinations');
-    return savedDestinations ? JSON.parse(savedDestinations) : [];
+  const [destinations, setDestinations] = useState<DestinationItem[]>(() => {
+    return destinationService.getLocalCache().map(normalizeDestination);
   });
-  const [lastKnownCount, setLastKnownCount] = useState<number>(0);
 
-  // Initialize last known count
+  function normalizeDestination(d: Destination | any): DestinationItem {
+    const img = d.imageUrl || d.image || '';
+    return {
+      ...d,
+      imageUrl: img,
+      image: img,
+      category: d.category || 'Domestic',
+      price: d.price || 'Contact for Price',
+      duration: d.duration || 'Flexible',
+      isFeatured: d.isFeatured !== undefined ? d.isFeatured : true,
+      isActive: d.isActive !== undefined ? d.isActive : true
+    };
+  }
+
+  // Subscribe to real-time updates from Firestore/local sync
   useEffect(() => {
-    const savedDestinations = localStorage.getItem('destinations');
-    if (savedDestinations) {
-      setLastKnownCount(JSON.parse(savedDestinations).length);
-    }
+    const unsubscribe = destinationService.subscribe((remoteList) => {
+      setDestinations(remoteList.map(normalizeDestination));
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  // Watch for changes in destinations
-  useEffect(() => {
-    localStorage.setItem('destinations', JSON.stringify(destinations));
-    
-    // Check if we have new destinations and show notification
-    if (lastKnownCount > 0 && destinations.length > lastKnownCount) {
-      const newDestination = destinations.find(dest => 
-        !localStorage.getItem(`destination-${dest.id}-notified`)
-      );
-      
-      if (newDestination) {
-        toast({
-          title: "New Destination Added!",
-          description: `"${newDestination.name}" is now available for booking.`,
-          duration: 5000,
-        });
-        
-        // Mark this destination as notified
-        localStorage.setItem(`destination-${newDestination.id}-notified`, 'true');
-      }
+  const addDestination = async (destination: Omit<Destination, 'id'> | Destination) => {
+    try {
+      const normalized = normalizeDestination(destination);
+      const created = await destinationService.add(normalized);
+      toast({
+        title: "Destination Added",
+        description: `"${created.name}" is now available.`,
+      });
+    } catch (err) {
+      console.error('Failed to add destination:', err);
+      toast({
+        title: "Error",
+        description: "Could not save destination. Please try again.",
+        variant: "destructive"
+      });
     }
-    
-    // Update the last known count
-    setLastKnownCount(destinations.length);
-    
-    // Broadcast the change to other tabs/windows
-    const event = new CustomEvent('destinationsUpdated', { 
-      detail: { destinations }
-    });
-    window.dispatchEvent(event);
-  }, [destinations, lastKnownCount]);
-
-  // Listen for changes from other tabs/windows
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'destinations' && e.newValue) {
-        const newDestinations = JSON.parse(e.newValue);
-        
-        // Check if we have new destinations
-        if (newDestinations.length > destinations.length) {
-          const newDest = newDestinations.find(newDest => 
-            !destinations.some(existingDest => existingDest.id === newDest.id)
-          );
-          
-          if (newDest && !localStorage.getItem(`destination-${newDest.id}-notified`)) {
-            toast({
-              title: "New Destination Added!",
-              description: `"${newDest.name}" is now available for booking.`,
-              duration: 5000,
-            });
-            
-            // Mark this destination as notified
-            localStorage.setItem(`destination-${newDest.id}-notified`, 'true');
-          }
-        }
-        
-        setDestinations(newDestinations);
-      }
-    };
-
-    const handleDestinationsUpdated = (e: CustomEvent<{destinations: Destination[]}>) => {
-      // Check for new destinations
-      if (e.detail.destinations.length > destinations.length) {
-        const newDests = e.detail.destinations.filter(newDest => 
-          !destinations.some(existingDest => existingDest.id === newDest.id)
-        );
-        
-        if (newDests.length > 0) {
-          newDests.forEach(newDest => {
-            if (!localStorage.getItem(`destination-${newDest.id}-notified`)) {
-              toast({
-                title: "New Destination Added!",
-                description: `"${newDest.name}" is now available for booking.`,
-                duration: 5000,
-              });
-              
-              // Mark this destination as notified
-              localStorage.setItem(`destination-${newDest.id}-notified`, 'true');
-            }
-          });
-        }
-      }
-      
-      setDestinations(e.detail.destinations);
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('destinationsUpdated', handleDestinationsUpdated as EventListener);
-
-    // Add a visibility change listener to refresh when tab becomes visible again
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        const savedDestinations = localStorage.getItem('destinations');
-        if (savedDestinations) {
-          const parsedDestinations = JSON.parse(savedDestinations);
-          setDestinations(parsedDestinations);
-        }
-      }
-    };
-    
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('destinationsUpdated', handleDestinationsUpdated as EventListener);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [destinations]);
-
-  const addDestination = (destination: Destination) => {
-    setDestinations([...destinations, destination]);
-    
-    // Show notification for the new destination
-    toast({
-      title: "New Destination Added!",
-      description: `"${destination.name}" is now available for booking.`,
-      duration: 5000,
-    });
-    
-    // Mark this destination as notified
-    localStorage.setItem(`destination-${destination.id}-notified`, 'true');
   };
 
-  const updateDestination = (updatedDestination: Destination) => {
-    setDestinations(destinations.map(dest => 
-      dest.id === updatedDestination.id ? updatedDestination : dest
-    ));
+  const updateDestination = async (updatedDestination: Destination) => {
+    try {
+      const normalized = normalizeDestination(updatedDestination);
+      await destinationService.update(normalized);
+      toast({
+        title: "Destination Updated",
+        description: `"${updatedDestination.name}" has been updated.`,
+      });
+    } catch (err) {
+      console.error('Failed to update destination:', err);
+      toast({
+        title: "Error",
+        description: "Could not update destination.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const deleteDestination = (id: string) => {
-    setDestinations(destinations.filter(dest => dest.id !== id));
-    
-    // Remove the notification marker for this destination
-    localStorage.removeItem(`destination-${id}-notified`);
+  const deleteDestination = async (id: string) => {
+    try {
+      await destinationService.delete(id);
+      toast({
+        title: "Destination Deleted",
+        description: "Destination removed successfully.",
+      });
+    } catch (err) {
+      console.error('Failed to delete destination:', err);
+      toast({
+        title: "Error",
+        description: "Could not delete destination.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
