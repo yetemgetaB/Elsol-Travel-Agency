@@ -1,7 +1,41 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { Plane, Hotel, Globe, Briefcase, FileText, Headphones } from 'lucide-react';
 import Layout from '../components/Layout';
+
+const servicesList = [
+  {
+    title: "Flight Bookings",
+    description: "International and domestic flight reservations with competitive rates, flexible itineraries, and IATA ticketing access.",
+    Icon: Plane
+  },
+  {
+    title: "Hotel Reservations",
+    description: "Curated portfolio of premium hotels, luxury safari lodges, and business accommodations worldwide.",
+    Icon: Hotel
+  },
+  {
+    title: "Tour Packages",
+    description: "Tailored historical excursions, mountain trekking, and cultural journeys with licensed professional guides.",
+    Icon: Globe
+  },
+  {
+    title: "Corporate Travel",
+    description: "End-to-end corporate travel management, priority flight rebooking, and expense-optimized itineraries.",
+    Icon: Briefcase
+  },
+  {
+    title: "Visa Assistance",
+    description: "Comprehensive visa advisory, entry permit requirements, and fast-track documentation guidance.",
+    Icon: FileText
+  },
+  {
+    title: "24/7 Dedicated Support",
+    description: "Round-the-clock emergency assistance, itinerary alterations, and continuous traveler support.",
+    Icon: Headphones
+  }
+];
 
 const Services = () => {
   return (
@@ -22,54 +56,28 @@ const Services = () => {
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              {
-                title: "Flight Bookings",
-                description: "International and domestic flight reservations with competitive rates and flexible options.",
-                icon: "✈️"
-              },
-              {
-                title: "Hotel Reservations",
-                description: "Access to a wide network of hotels worldwide, from luxury resorts to boutique stays.",
-                icon: "🏨"
-              },
-              {
-                title: "Tour Packages",
-                description: "Curated tour packages to popular destinations with expert guides and planned itineraries.",
-                icon: "🌍"
-              },
-              {
-                title: "Corporate Travel",
-                description: "Specialized business travel solutions with dedicated support and expense management.",
-                icon: "💼"
-              },
-              {
-                title: "Visa Assistance",
-                description: "Professional guidance for visa applications and documentation requirements.",
-                icon: "📄"
-              },
-              {
-                title: "24/7 Support",
-                description: "Round-the-clock customer support for all your travel-related queries and assistance.",
-                icon: "🕒"
-              }
-            ].map((service, index) => (
-              <motion.div
-                key={service.title}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="group hover-glow p-8 rounded-xl backdrop-blur-sm bg-black/30 border border-elsol-sage/10 text-center transition-all duration-300 hover:border-elsol-sage/30"
-              >
-                <div className="text-4xl mb-4">{service.icon}</div>
-                <h3 className="text-xl font-semibold mb-3 text-gray-100 group-hover:text-elsol-sage transition-colors duration-300">
-                  {service.title}
-                </h3>
-                <p className="text-gray-400 group-hover:text-gray-300 transition-colors duration-300">
-                  {service.description}
-                </p>
-              </motion.div>
-            ))}
+            {servicesList.map((service, index) => {
+              const ServiceIcon = service.Icon;
+              return (
+                <motion.div
+                  key={service.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  className="group hover-glow p-8 rounded-xl backdrop-blur-sm bg-black/30 border border-elsol-sage/10 text-center transition-all duration-300 hover:border-elsol-sage/30"
+                >
+                  <div className="w-16 h-16 rounded-2xl bg-elsol-sage/10 border border-elsol-sage/20 flex items-center justify-center mx-auto mb-5 text-elsol-sage group-hover:scale-110 group-hover:bg-elsol-sage group-hover:text-black transition-all duration-300">
+                    <ServiceIcon className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-3 text-gray-100 group-hover:text-elsol-sage transition-colors duration-300">
+                    {service.title}
+                  </h3>
+                  <p className="text-gray-400 group-hover:text-gray-300 transition-colors duration-300 leading-relaxed text-sm">
+                    {service.description}
+                  </p>
+                </motion.div>
+              );
+            })}
           </div>
 
           <motion.div

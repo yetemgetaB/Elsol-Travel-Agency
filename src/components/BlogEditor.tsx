@@ -245,7 +245,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({ post, isEditing = false, onCanc
       
       if (isTravelPost) {
         const td = formData.travelDetails;
-        telegramMessage = `🌟 NEW TRAVEL OPPORTUNITY 🌟\n\n${formData.title}\n\n✈️ ${td.airline}\n📅 ${td.departureDate} - ${td.returnDate}\n⏰ ${td.departureTime} - ${td.returnTime}\n🧳 ${td.baggage}\n\n💰 ${td.price || 'Contact for price'}\n\n📞 ${td.phones.join(', ')}\n📧 ${td.emails.join(', ')}\n\n${td.additionalInfo ? `ℹ️ ${td.additionalInfo}\n\n` : ''}`;
+        telegramMessage = `ELSOL TRAVEL OPPORTUNITY\n\n${formData.title}\n\nAirline: ${td.airline}\nDates: ${td.departureDate} - ${td.returnDate}\nSchedule: ${td.departureTime} - ${td.returnTime}\nBaggage: ${td.baggage}\nPrice: ${td.price || 'Contact for price'}\n\nContact: ${td.phones.join(', ')} | ${td.emails.join(', ')}\n\n${td.additionalInfo ? `Note: ${td.additionalInfo}\n\n` : ''}`;
       }
 
       const newPost = {

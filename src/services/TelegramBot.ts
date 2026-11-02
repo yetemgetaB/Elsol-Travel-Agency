@@ -44,30 +44,29 @@ export class TelegramBot {
     
     if (post.travelDetails) {
       const td = post.travelDetails;
-      message = `🌟 ELSOL TRAVEL AGENCY 🌟\n\n` +
+      message = `ELSOL TRAVEL AGENCY\n` +
         `Your Gateway to Seamless Journeys\n\n` +
-        `🛫 ${td.airline} SPECIAL OFFER 🛬\n\n` +
-        `📅 Travel Dates:\n` +
-        `🛫 Departure: ${td.departureDate} | ${td.departureTime}\n` +
-        `🛬 Return: ${td.returnDate} | ${td.returnTime}\n\n` +
-        `✨ Package Includes:\n` +
-        `✅ ${td.baggage} Baggage Allowance\n` +
-        `✅ Expert Travel Assistance\n` +
-        `✅ Flexible Booking Options\n\n` +
-        `${td.price ? `💰 Special Price: ${td.price}\n\n` : ''}` +
-        `🔖 Limited Availability - Book Now!\n\n` +
-        `📬 Contact Us:\n` +
-        `${td.phones.map(phone => `📞 ${phone}`).join('\n')}\n` +
-        `${td.emails.map(email => `📧 ${email}`).join('\n')}\n\n` +
-        `🎯 Why Choose Us?\n` +
-        `✔️ Certified Travel Experts\n` +
-        `✔️ Best Price Guarantee\n` +
-        `✔️ 24/7 Customer Support\n\n` +
-        `${td.additionalInfo ? `ℹ️ Additional Information:\n${td.additionalInfo}\n\n` : ''}` +
-        `✨ BOOK NOW & EMBARK ON YOUR DREAM JOURNEY! ✨\n` +
-        `🔗 ${postUrl}`;
+        `SPECIAL FLIGHT OFFER: ${td.airline}\n\n` +
+        `TRAVEL DATES:\n` +
+        `• Departure: ${td.departureDate} | ${td.departureTime}\n` +
+        `• Return: ${td.returnDate} | ${td.returnTime}\n\n` +
+        `PACKAGE INCLUDES:\n` +
+        `• ${td.baggage} Baggage Allowance\n` +
+        `• Expert Travel & Ticketing Assistance\n` +
+        `• Flexible Booking Options\n\n` +
+        `${td.price ? `Special Price: ${td.price}\n\n` : ''}` +
+        `CONTACT US:\n` +
+        `${td.phones.map(phone => `Phone: ${phone}`).join('\n')}\n` +
+        `${td.emails.map(email => `Email: ${email}`).join('\n')}\n\n` +
+        `WHY CHOOSE ELSOL TRAVEL?\n` +
+        `• IATA Certified Travel Partner\n` +
+        `• Best Available Airfare Guarantee\n` +
+        `• 24/7 Dedicated Customer Support\n\n` +
+        `${td.additionalInfo ? `Additional Information:\n${td.additionalInfo}\n\n` : ''}` +
+        `Book / View Details:\n` +
+        `${postUrl}`;
     } else {
-      message = `📝 New Blog Post: ${post.title}\n\n${post.excerpt}\n\n✍️ By: ${post.author}\n\nRead more: ${postUrl}`;
+      message = `ELSOL Travel Article: ${post.title}\n\n${post.excerpt}\n\nBy: ${post.author}\n\nRead more: ${postUrl}`;
     }
 
     // 1. If backend webhook is configured, dispatch securely via webhook

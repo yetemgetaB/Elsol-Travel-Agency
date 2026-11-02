@@ -1,7 +1,7 @@
 import DOMPurify from 'dompurify';
 import React, { useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, Clock, User, Facebook, Twitter, Linkedin, Send, Plane, CheckCircle, ArrowRight } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, User, Facebook, Twitter, Linkedin, Send, Plane, CheckCircle, ArrowRight, Info } from 'lucide-react';
 import { useBlogContext } from '../context/BlogContext';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -154,8 +154,9 @@ const BlogPost = () => {
                   </div>
 
                   {post.travelDetails.additionalInfo && (
-                    <p className="text-xs text-gray-300 mb-6 italic">
-                      ℹ️ {post.travelDetails.additionalInfo}
+                    <p className="text-xs text-gray-300 mb-6 italic flex items-center">
+                      <Info className="w-4 h-4 text-elsol-sage inline-block mr-1.5 flex-shrink-0" />
+                      <span>{post.travelDetails.additionalInfo}</span>
                     </p>
                   )}
 
