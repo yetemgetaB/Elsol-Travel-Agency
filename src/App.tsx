@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import React, { Suspense, lazy } from 'react';
 import Loading from './components/Loading';
 import { BlogProvider } from "./context/BlogContext";
@@ -42,6 +42,7 @@ const App = () => (
                 <Route path="/blog/:slug" element={<BlogPost />} />
                 
                 {/* Admin routes */}
+                <Route path="/login" element={<Navigate to="/admin/login" replace />} />
                 <Route path="/admin/login" element={<Login />} />
                 <Route 
                   path="/admin/dashboard" 
